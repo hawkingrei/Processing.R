@@ -2,10 +2,9 @@ package rprocessing;
 
 import javax.script.ScriptException;
 
-import org.renjin.eval.EvalException;
 
 import rprocessing.exception.NotFoundException;
-import rprocessing.exception.REvalException;
+import rprocessing.exception.RSketchError;
 import rprocessing.lancher.StandaloneSketch;
 import rprocessing.util.Printer;
 import rprocessing.util.StreamPrinter;
@@ -18,6 +17,8 @@ import rprocessing.util.StreamPrinter;
 public class Runner {
 
   public static RunnableSketch sketch;
+  private static final String CORE_TEXT =
+      RScriptReader.readResourceAsText(Runner.class, "r/core.R");
 
   private static final boolean VERBOSE = Boolean.parseBoolean(System.getenv("VERBOSE_RLANG_MODE"));
 
@@ -49,29 +50,20 @@ public class Runner {
   }
 
   public static synchronized void runSketchBlocking(final RunnableSketch sketch,
-      final Printer stdout, final Printer stderr)
-      throws REvalException, NotFoundException, ScriptException {
+      final Printer stdout, final Printer stderr) throws NotFoundException, RSketchError {
     runSketchBlocking(sketch, stdout, stderr, null);
   }
 
   public static synchronized void runSketchBlocking(final RunnableSketch sketch,
       final Printer stdout, final Printer stderr,
-      final SketchPositionListener sketchPositionListener)
-      throws REvalException, NotFoundException, ScriptException {
+      final SketchPositionListener sketchPositionListener) throws NotFoundException, RSketchError {
     final String[] args = sketch.getPAppletArguments();
 
     log("Tring to initialize RLangPApplet.");
     RLangPApplet rp = new RLangPApplet(sketch.getMainCode(), stdout);
     log("Adding processing variable into R top context.");
     rp.addPAppletToRContext();
-    rp.evaluateCoreCode();
 
-    try {
-      // Run Sketch.
-      rp.runBlock(args);
-      log("Down");
-    } catch (EvalException ee) {
-      throw new REvalException(ee.getMessage());
-    }
+    rp.runBlock(args);
   }
 }
