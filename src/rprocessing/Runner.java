@@ -1,8 +1,5 @@
 package rprocessing;
 
-import javax.script.ScriptException;
-
-
 import rprocessing.exception.NotFoundException;
 import rprocessing.exception.RSketchError;
 import rprocessing.lancher.StandaloneSketch;
@@ -17,8 +14,6 @@ import rprocessing.util.StreamPrinter;
 public class Runner {
 
   public static RunnableSketch sketch;
-  private static final String CORE_TEXT =
-      RScriptReader.readResourceAsText(Runner.class, "r/core.R");
 
   private static final boolean VERBOSE = Boolean.parseBoolean(System.getenv("VERBOSE_RLANG_MODE"));
 
@@ -63,6 +58,7 @@ public class Runner {
     RLangPApplet rp = new RLangPApplet(sketch.getMainCode(), stdout);
     log("Adding processing variable into R top context.");
     rp.addPAppletToRContext();
+    rp.evaluateCoreCode();
 
     rp.runBlock(args);
   }
